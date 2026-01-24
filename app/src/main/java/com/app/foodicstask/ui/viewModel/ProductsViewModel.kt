@@ -20,6 +20,8 @@ class ProductsViewModel(
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories = _categories.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading = _isLoading.asStateFlow()
     private val _products = MutableStateFlow<List<Product>>(emptyList())
     val products = _products.asStateFlow()
 
@@ -32,8 +34,10 @@ class ProductsViewModel(
 
     fun loadData() {
         viewModelScope.launch {
+            _isLoading.value = true
             _categories.value = getCategoriesUseCase()
             _products.value = getProductsUseCase()
+            _isLoading.value = false
         }
     }
 
