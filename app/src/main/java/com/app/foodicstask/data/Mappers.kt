@@ -36,13 +36,6 @@ object Mappers {
         )
     }
 
-    fun Category.toEntity(): CategoryEntity {
-        return CategoryEntity(
-            id = id,
-            name = name
-        )
-    }
-
     fun ProductEntity.toDomain(category: Category): Product {
         return Product(
             id = id,
@@ -54,14 +47,4 @@ object Mappers {
         )
     }
 
-    fun Product.toEntity(): ProductEntity {
-        return ProductEntity(
-            id = id,
-            name = name,
-            description = description,
-            image = imageUrl,
-            price = price,
-            categoryId = category.id
-        )
-    }
 }

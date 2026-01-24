@@ -6,7 +6,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.app.foodicstask.R
 
 @Composable
 fun ViewOrderBar(
@@ -19,6 +21,6 @@ fun ViewOrderBar(
             .fillMaxWidth()
             .padding(8.dp)
     ) {
-        Text("View Order — Total: $totalPrice")
+        Text(stringResource(R.string.view_order_total, totalPrice))
     }
 }
