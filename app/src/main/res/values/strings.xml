@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Foodics Task</string>
+    <string name="search_products">Search products…</string>
+    <string name="qty">Qty: %1$d</string>
+    <string name="price">Price: $%1$s</string>
+    <string name="view_order_total">View Order — Total: %1$s</string>
 </resources>

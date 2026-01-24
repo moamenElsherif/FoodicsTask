@@ -18,53 +18,78 @@ class ProductRepositoryImpl(
 
     override suspend fun getCategories(): List<Category> {
         val remote = api.getCategories()
-        val entities = remote.map { CategoryEntity(it.id.toString(), it.name) }
-        categoryDao.insertCategories(entities)
 
+        val entities = remote.map {
+            CategoryEntity(
+                id = it.id.toString(),
+                name = it.name
+            )
+        }
+
+        categoryDao.insertCategories(entities)
         return entities.map { it.toDomain() }
     }
 
     override suspend fun getProducts(): List<Product> {
         val remote = api.getProducts()
 
-        val categoryEntities = remote.map {
-            CategoryEntity(it.category?.id.toString(), it.category?.name.toString())
-        }.distinctBy { it.id }
+        insertCategories(remote.map { it.toDomain() })
+        insertProducts(remote.map { it.toDomain() })
 
-        categoryDao.insertCategories(categoryEntities)
-
-        val productEntities = remote.map {
-            ProductEntity(
-                id = it.id.toString(),
-                name = it.name,
-                description = it.description,
-                image = it.image,
-                price = it.price,
-                categoryId = it.category?.id.toString()
-            )
-        }
-
-        productDao.insertProducts(productEntities)
-
-        return mapProductsFromDb()
+        return getProductsFromDb()
     }
 
     override suspend fun searchProducts(query: String): List<Product> {
         val products = productDao.searchProducts(query)
-        val categories = categoryDao.getAllCategories().associateBy { it.id }
+        return mapProducts(products)
+    }
+    private suspend fun insertCategories(remote: List<Product>) {
+        val categories = remote
+            .mapNotNull { it.category }
+            .distinctBy { it.id }
+            .map {
+                CategoryEntity(
+                    id = it.id,
+                    name = it.name
+                )
+            }
 
-        return products.map { product ->
-            val category = categories[product.categoryId]!!.toDomain()
-            product.toDomain(category)
-        }
+        categoryDao.insertCategories(categories)
     }
 
-    private suspend fun mapProductsFromDb(): List<Product> {
-        val products = productDao.getAllProducts()
-        val categories = categoryDao.getAllCategories().associateBy { it.id }
+    private suspend fun insertProducts(remote: List<Product>) {
+        val entities = remote.mapNotNull { product ->
+            product.category?.let { category ->
+                ProductEntity(
+                    id = product.id,
+                    name = product.name,
+                    description = product.description,
+                    image = product.imageUrl,
+                    price = product.price,
+                    categoryId = category.id
+                )
+            }
+        }
 
-        return products.map { product ->
-            val category = categories[product.categoryId]!!.toDomain()
+        productDao.insertProducts(entities)
+    }
+
+    private suspend fun getProductsFromDb(): List<Product> {
+        return mapProducts(productDao.getAllProducts())
+    }
+
+    private suspend fun mapProducts(
+        products: List<ProductEntity>
+    ): List<Product> {
+        val categories = categoryDao
+            .getAllCategories()
+            .associateBy { it.id }
+
+        return products.mapNotNull { product ->
+            val category = categories[product.categoryId]
+                ?.toDomain()
+                ?: return@mapNotNull null
+
             product.toDomain(category)
         }
     }

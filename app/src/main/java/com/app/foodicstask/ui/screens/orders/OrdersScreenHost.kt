@@ -12,10 +12,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.app.foodicstask.domain.model.Category
+import com.app.foodicstask.domain.model.OrderItem
+import com.app.foodicstask.domain.model.Product
 import com.app.foodicstask.ui.components.OrderItemRow
 import com.app.foodicstask.ui.viewModel.OrderViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -24,9 +28,21 @@ import org.koin.androidx.compose.koinViewModel
 fun OrdersScreenHost(
     orderViewModel: OrderViewModel = koinViewModel()
 ) {
-    val orderItems by orderViewModel.orderItems.collectAsState()
-    val totalPrice by orderViewModel.totalPrice.collectAsState()
+    val orderItems by orderViewModel.orderItems.collectAsStateWithLifecycle()
+    val totalPrice by orderViewModel.totalPrice.collectAsStateWithLifecycle()
 
+    OrderScreen(orderItems, totalPrice) {
+        orderViewModel.clearOrder()
+    }
+
+}
+
+@Composable
+private fun OrderScreen(
+    orderItems: List<OrderItem>,
+    totalPrice: Double,
+    onClearOrderClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,11 +71,35 @@ fun OrdersScreenHost(
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = { orderViewModel.clearOrder() },
+                onClick = { onClearOrderClick() },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Clear Order")
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OrdersScreenPreview() {
+    OrderScreen(
+        orderItems = List(5) { index ->
+            OrderItem(
+                product = Product(
+                    name = "Pizza #$index",
+                    price = 10.0,
+                    id = "id_$index",
+                    imageUrl = "",
+                    description = "description",
+                    category = Category(
+                        name = "category",
+                        id = "cat_$index"
+                    )
+                ),
+                quantity = index + 1
+            )
+        },
+        totalPrice = 50.0
+    ) { }
 }

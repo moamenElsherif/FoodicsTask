@@ -9,37 +9,33 @@ class OrderRepositoryImpl : OrderRepository {
     private val orderItems = mutableMapOf<String, OrderItem>()
 
     override fun addProduct(product: Product) {
-        val existing = orderItems[product.id]
-        if (existing == null) {
-            orderItems[product.id] = OrderItem(product, 1)
-        } else {
-            orderItems[product.id] =
-                existing.copy(quantity = existing.quantity + 1)
-        }
+        updateQuantity(product, delta = 1)
     }
 
     override fun removeProduct(product: Product) {
-        val existing = orderItems[product.id] ?: return
-
-        if (existing.quantity <= 1) {
-            orderItems.remove(product.id)
-        } else {
-            orderItems[product.id] =
-                existing.copy(quantity = existing.quantity - 1)
-        }
+        updateQuantity(product, delta = -1)
     }
 
     override fun clearOrder() {
         orderItems.clear()
     }
 
-    override fun getOrderItems(): List<OrderItem> {
-        return orderItems.values.toList()
-    }
+    override fun getOrderItems(): List<OrderItem> =
+        orderItems.values.toList()
 
-    override fun getTotalPrice(): Double {
-        return orderItems.values.sumOf {
-            it.product.price * it.quantity
+    override fun getTotalPrice(): Double =
+        orderItems.values.sumOf { it.product.price * it.quantity }
+
+    private fun updateQuantity(product: Product, delta: Int) {
+        val existing = orderItems[product.id]
+
+        val newQuantity = (existing?.quantity ?: 0) + delta
+
+        when {
+            newQuantity <= 0 -> orderItems.remove(product.id)
+            existing == null -> orderItems[product.id] = OrderItem(product, 1)
+            else -> orderItems[product.id] =
+                existing.copy(quantity = newQuantity)
         }
     }
 }

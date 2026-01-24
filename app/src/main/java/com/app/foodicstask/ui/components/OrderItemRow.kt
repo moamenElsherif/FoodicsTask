@@ -9,7 +9,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.app.foodicstask.R
 import com.app.foodicstask.domain.model.OrderItem
 
 
@@ -23,7 +25,7 @@ fun OrderItemRow(item: OrderItem) {
     ) {
         Column {
             Text(item.product.name, style = MaterialTheme.typography.titleMedium)
-            Text("Qty: ${item.quantity}")
+            Text(stringResource(R.string.qty, item.quantity))
         }
 
         Text(
